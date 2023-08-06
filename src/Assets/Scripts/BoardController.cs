@@ -30,7 +30,13 @@ public class BoardController : MonoBehaviour
     {
         ClearAll();
 
-        
+        //        for (int y = 0; y < BOARD_HEIGHT; y++)
+        //        {
+        //            for (int x = 0; x < BOARD_WIDTH; x++)
+        //            {
+        //                Settle(new Vector2Int(x, y), Random.Range(1, 7));
+        //            }
+        //        }
     }
 
     public static bool IsValidated(Vector2Int pos)
@@ -52,7 +58,7 @@ public class BoardController : MonoBehaviour
 
         _board[pos.y, pos.x] = val;
 
-        Debug.Assert(_Puyos[pos.y, pos.x] == null);// hO?????????mhF
+        Debug.Assert(_Puyos[pos.y, pos.x] == null);// ”O‚Ì‚½‚ß‚ÌŠm”F
         Vector3 world_position = transform.position + new Vector3(pos.x, pos.y, 0.0f);
         _Puyos[pos.y, pos.x] = Instantiate(prefabPuyo, world_position, Quaternion.identity, transform);
         _Puyos[pos.y, pos.x].GetComponent<PuyoController>().SetPuyoType((PuyoType)val);
