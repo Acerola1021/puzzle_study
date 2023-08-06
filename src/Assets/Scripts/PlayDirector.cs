@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using TMPro;
 
 interface IState
 {
@@ -33,6 +34,11 @@ public class PlayDirector : MonoBehaviour
     NextQueue _nextQueue = new();
     [SerializeField] PuyoPair[] nextPuyoPairs = { default!, default! };// 次nextのゲームオブジェクトの制御
 
+    // 得点
+    [SerializeField] TextMeshProUGUI textScore = default!;
+    uint _score = 0;
+    int _chainCount = -1;// 連鎖数（得点計算に必要）-1は初期化用 Magic number
+
     // 状態管理
     IState.E_State _current_state = IState.E_State.Falling;
     static readonly IState[] states = new IState[(int)IState.E_State.MAX]{
@@ -53,6 +59,8 @@ public class PlayDirector : MonoBehaviour
         _nextQueue.Initialize();
         // 状態の初期化
         InitializeState();
+
+        SetScore(0);
     }
 
     void UpdateNextsView()
@@ -132,7 +140,12 @@ public class PlayDirector : MonoBehaviour
     {
         public IState.E_State Initialize(PlayDirector parent)
         {
-            return parent._boardController.CheckErase() ? IState.E_State.Unchanged : IState.E_State.Control;
+            if (parent._boardController.CheckErase(parent._chainCount++))
+            {
+                return IState.E_State.Unchanged;// 消すアニメーションに突入
+            }
+            parent._chainCount = 0;// 連鎖が途切れた
+            return IState.E_State.Control;// 消すものはない
         }
         public IState.E_State Update(PlayDirector parent)
         {
@@ -173,7 +186,20 @@ public class PlayDirector : MonoBehaviour
         UpdateInput();
 
         UpdateState();
+
+        AddScore(_playerController.popScore());
+        AddScore(_boardController.popScore());
     }
 
     bool Spawn(Vector2Int next) => _playerController.Spawn((PuyoType)next[0], (PuyoType)next[1]);
+
+    void SetScore(uint score)
+    {
+        _score = score;
+        textScore.text = _score.ToString();
+    }
+    void AddScore(uint score)
+    {
+        if (0 < score) SetScore(_score + score);
+    }
 }
