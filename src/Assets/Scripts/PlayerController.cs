@@ -54,7 +54,7 @@ public class PlayerController : MonoBehaviour
         _puyoControllers[1].SetPos(new Vector3((float)posChild.x, (float)posChild.y, 0.0f));
     }
 
-    static readonly Vector2Int[] rotate_tbl = new Vector2Int[] { 
+    static readonly Vector2Int[] rotate_tbl = new Vector2Int[] {
         Vector2Int.up, Vector2Int.right, Vector2Int.down, Vector2Int.left };
     private static Vector2Int CalcChildPuyoPos(Vector2Int pos, RotState rot)
     {
@@ -133,7 +133,6 @@ public class PlayerController : MonoBehaviour
     }
 
     void Settle()
-<<<<<<< HEAD
     {
         // 直接接地
         bool is_set0 = boardController.Settle(_position,
@@ -160,37 +159,9 @@ public class PlayerController : MonoBehaviour
         _position = pos;
 
         Settle();
-=======
-    {
-        // 直接接地
-        bool is_set0 = boardController.Settle(_position,
-            (int)_puyoControllers[0].GetPuyoType());
-        Debug.Assert(is_set0);// 置いたのは空いていた場所のはず
-
-        bool is_set1 = boardController.Settle(CalcChildPuyoPos(_position, _rotate),
-            (int)_puyoControllers[1].GetPuyoType());
-        Debug.Assert(is_set1);// 置いたのは空いていた場所のはず
-
-        gameObject.SetActive(false);
->>>>>>> 3943d1d1ed04c3b80e6b15f329c9d271de6234ef
     }
 
-    void QuickDrop()
-    {
-        // 落ちれる一番下まで落ちる
-        Vector2Int pos = _position;
-        do
-        {
-            pos += Vector2Int.down;
-        } while (CanMove(pos, _rotate));
-        pos -= Vector2Int.down;// 一つ上の場所（最後に置けた場所）に戻す
-
-        _position = pos;
-
-        Settle();
-    }
-
-    static readonly KeyCode[] key_code_tbl = new KeyCode[(int)LogicalInput.Key.MAX]{ 
+    static readonly KeyCode[] key_code_tbl = new KeyCode[(int)LogicalInput.Key.MAX]{
         KeyCode.RightArrow, // Right
         KeyCode.LeftArrow,  // Left
         KeyCode.X,          // RotR
@@ -246,11 +217,7 @@ public class PlayerController : MonoBehaviour
     void Control()
     {
         // 落とす
-<<<<<<< HEAD
         if (!Fall(logicalInput.IsRaw(LogicalInput.Key.Down))) return;// 接地したら終了
-=======
-        if(!Fall(logicalInput.IsRaw(LogicalInput.Key.Down))) return;// 接地したら終了
->>>>>>> 3943d1d1ed04c3b80e6b15f329c9d271de6234ef
 
         // アニメ中はキー入力を受け付けない
         if (_animationController.Update()) return;
@@ -258,11 +225,11 @@ public class PlayerController : MonoBehaviour
         // 平行移動のキー入力取得
         if (logicalInput.IsRepeat(LogicalInput.Key.Right))
         {
-            if(Translate(true)) return;
+            if (Translate(true)) return;
         }
         if (logicalInput.IsRepeat(LogicalInput.Key.Left))
         {
-            if(Translate(false)) return;
+            if (Translate(false)) return;
         }
 
         // 回転のキー入力取得
