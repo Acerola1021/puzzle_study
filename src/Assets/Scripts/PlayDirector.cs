@@ -1,6 +1,24 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
+
+interface IState
+{
+    public enum E_State
+    {
+        Control = 0,
+        GameOver = 1,
+
+        MAX,
+
+        Unchanged,
+    }
+
+    E_State Initialize(PlayDirector parent);
+    E_State Update(PlayDirector parent);
+}
+
 
 public class PlayDirector : MonoBehaviour
 {
@@ -9,7 +27,14 @@ public class PlayDirector : MonoBehaviour
     LogicalInput _logicalInput = new();
 
     NextQueue _nextQueue = new();
-    [SerializeField] PuyoPair[] nextPuyoPairs = { default!, default! };// ??next??Q?[???I?u?W?F?N?g?????
+    [SerializeField] PuyoPair[] nextPuyoPairs = { default!, default! };// 次nextのゲームオブジェクトの制御
+
+    // 状態管理
+    IState.E_State _current_state = IState.E_State.Control;
+    static readonly IState[] states = new IState[(int)IState.E_State.MAX]{
+        new ControlState(),
+        new GameOverState(),
+    };
 
     // Start is called before the first frame update
     void Start()
@@ -19,8 +44,8 @@ public class PlayDirector : MonoBehaviour
         _playerController.SetLogicalInput(_logicalInput);
 
         _nextQueue.Initialize();
-        Spawn(_nextQueue.Update());
-        UpdateNextsView();
+        // 状態の初期化
+        InitializeState();
     }
 
     void UpdateNextsView()
@@ -39,12 +64,12 @@ public class PlayDirector : MonoBehaviour
         KeyCode.DownArrow,  // Down
     };
 
-    // ??????????
+    // 入力を取り込む
     void UpdateInput()
     {
-        LogicalInput.Key inputDev = 0;// ?f?o?C?X?l
+        LogicalInput.Key inputDev = 0;// デバイス値
 
-        // ?L?[????擾
+        // キー入力取得
         for (int i = 0; i < (int)LogicalInput.Key.MAX; i++)
         {
             if (Input.GetKey(key_code_tbl[i]))
@@ -56,18 +81,67 @@ public class PlayDirector : MonoBehaviour
         _logicalInput.Update(inputDev);
     }
 
+    class ControlState : IState
+    {
+        public IState.E_State Initialize(PlayDirector parent)
+        {
+            if (!parent.Spawn(parent._nextQueue.Update()))
+            {
+                return IState.E_State.GameOver;
+            }
+
+            parent.UpdateNextsView();
+            return IState.E_State.Unchanged;
+        }
+        public IState.E_State Update(PlayDirector parent)
+        {
+            return parent.player.activeSelf ? IState.E_State.Unchanged : IState.E_State.Control;
+        }
+    }
+
+    class GameOverState : IState
+    {
+        public IState.E_State Initialize(PlayDirector parent)
+        {
+            SceneManager.LoadScene(0);// リトライ
+            return IState.E_State.Unchanged;
+        }
+        public IState.E_State Update(PlayDirector parent) { return IState.E_State.Unchanged; }
+    }
+
+    void InitializeState()
+    {
+        Debug.Assert(condition: _current_state is >= 0 and < IState.E_State.MAX);
+
+        var next_state = states[(int)_current_state].Initialize(this);
+
+        if (next_state != IState.E_State.Unchanged)
+        {
+            _current_state = next_state;
+            InitializeState();// 初期化で状態が変わるようなら、再帰的に初期を呼び出す
+        }
+    }
+
+    void UpdateState()
+    {
+        Debug.Assert(condition: _current_state is >= 0 and < IState.E_State.MAX);
+
+        var next_state = states[(int)_current_state].Update(this);
+        if (next_state != IState.E_State.Unchanged)
+        {
+            // 次の状態に遷移
+            _current_state = next_state;
+            InitializeState();
+        }
+    }
 
     // Update is called once per frame
     void FixedUpdate()
     {
-        // ??????????
+        // 入力を取り込む
         UpdateInput();
 
-        if (!player.activeSelf)
-        {
-            Spawn(_nextQueue.Update());
-            UpdateNextsView();
-        }
+        UpdateState();
     }
 
     bool Spawn(Vector2Int next) => _playerController.Spawn((PuyoType)next[0], (PuyoType)next[1]);
