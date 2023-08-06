@@ -10,13 +10,13 @@ public class AnimationController
 
     public void Set(int max_time)
     {
-        Debug.Assert(0 < max_time);// 負の遷移時間は不正
+        Debug.Assert(0 < max_time);// 雋縺ｮ驕ｷ遘ｻ譎る俣縺ｯ荳肴ｭ｣
 
         _time = max_time;
         _inv_time_max = 1.0f / (float)max_time;
     }
 
-    // アニメーション中ならtrueを返す
+    // 繧｢繝九Γ繝ｼ繧ｷ繝ｧ繝ｳ荳ｭ縺ｪ繧液rue繧定ｿ斐☆
     public bool Update()
     {
         _time = Math.Max(--_time, 0);
